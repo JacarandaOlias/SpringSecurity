@@ -21,4 +21,11 @@ public class GlobalControllerError {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
 		
 	}
+	
+	@ExceptionHandler(ExceptionCredentialNotValid.class)
+	public ResponseEntity<ApiError> handleExceptionCredentialNotValid(ExceptionCredentialNotValid e){
+		ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+		
+	}
 }

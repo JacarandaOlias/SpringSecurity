@@ -1,5 +1,6 @@
 package com.jacaranda.springSecurity.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,6 +8,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -18,6 +20,8 @@ import com.jacaranda.springSecurity.service.UserService;
 @EnableWebSecurity
 public class SecurityConfig {
 
+	@Autowired
+	AuthEntryPoint authEntryPoint;
 	
     @Bean
     UserService userDetailsService() {
@@ -51,13 +55,16 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests((requests) -> {
+			.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+	        .exceptionHandling((exceptionHandling) -> exceptionHandling.authenticationEntryPoint(authEntryPoint))
+	        .authorizeHttpRequests((requests) -> {
 			requests
-			.requestMatchers("/signin").permitAll()
-			.requestMatchers("/article").authenticated()
-			.anyRequest().denyAll();
-		}).formLogin((form) -> form.permitAll())
-		.logout((logout) -> logout.permitAll().logoutSuccessUrl("/"));
+				.requestMatchers("/signin").permitAll()
+				.requestMatchers("/article").authenticated()
+				.anyRequest().denyAll();
+	        })
+	        .formLogin((form) -> form.permitAll())
+	        .logout((logout) -> logout.permitAll().logoutSuccessUrl("/"));
 		
 		return http.build();
 	}

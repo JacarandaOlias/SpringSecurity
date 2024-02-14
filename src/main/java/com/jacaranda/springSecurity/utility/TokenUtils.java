@@ -1,16 +1,27 @@
 package com.jacaranda.springSecurity.utility;
 
-import java.sql.Date;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.jacaranda.springSecurity.exception.ExceptionTokenNotValid;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 public class TokenUtils {
 	
+		
 		// Declaramos el token que usaremos para el cifrado y la decodificación.
 		// Lo suyo es que este token sea generado de forma aleatoria al empezar la aplicación
 		// Podemos poner el valor que queramos
@@ -56,6 +67,63 @@ public class TokenUtils {
 	        
 	        return "Bearer " + token;
 	    }
-
+	    
+	    /**
+	     * Obtiene el payLoad de un token
+	     * @param token
+	     * @return
+	     * @throws JwtException
+	     * @throws IllegalArgumentException
+	     * @throws NoSuchAlgorithmException
+	     */
+	    private static Claims getAllClaimsFromToken(String token) throws JwtException, IllegalArgumentException, NoSuchAlgorithmException {
+	    	
+	    	Claims claims = 
+        			Jwts.parser().verifyWith(Keys.hmacShaKeyFor(ACCESS_TOKEN_SECRET.getBytes())) 
+        					.build()
+        					.parseSignedClaims(token)
+        					.getPayload();
+	        return claims;
+	    }
+	    
+	      
+	    /**
+	     * Método para ver el usuario y el role que "contiene" el token. Lo primero
+	     * que haremos es decodificar el claims. Si lanza una exception es que no es 
+	     * válido usando nuestra token secreto. Si es válido vemos la fecha de expiracion
+	     * Sacamos el nombre y los roles y lo devolvemos.
+	     * @param token
+	     * @return
+	     
+	     */
+	    public static UsernamePasswordAuthenticationToken getAuthentication(String token) throws JwtException, IllegalArgumentException, NoSuchAlgorithmException   {
+	    	Claims claims;
+	    	
+	    	if (!token.startsWith("Bearer ")) {
+				throw new ExceptionTokenNotValid("Formato token no válido");
+	    	}
+	    	token = token.substring(7);
+	    	try {
+	    		//Claims == PayLoad
+	        	claims = getAllClaimsFromToken(token);
+	    	} catch (IllegalArgumentException e) {
+	    		throw new ExceptionTokenNotValid("Imposible encontra un JWT Token");
+            } catch (ExpiredJwtException e) {
+            	throw new ExceptionTokenNotValid("Token expirado");
+            } catch (NoSuchAlgorithmException e) {
+				throw new ExceptionTokenNotValid("Algoritmo no válido");
+            }
+            
+	    
+	       	String username = claims.getSubject();
+	        	
+	        String role = (String) claims.get("role");
+	        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+	    	authorities.add(new SimpleGrantedAuthority(role));
+	        	
+	        return new UsernamePasswordAuthenticationToken(username,null,authorities);
+			
+	    	
+	    }
 
 }

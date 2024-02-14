@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.jacaranda.springSecurity.service.UserService;
 
@@ -22,6 +23,9 @@ public class SecurityConfig {
 
 	@Autowired
 	AuthEntryPoint authEntryPoint;
+	
+	@Autowired
+	RequestFilter requestFilter;
 	
     @Bean
     UserService userDetailsService() {
@@ -66,6 +70,8 @@ public class SecurityConfig {
 	        .formLogin((form) -> form.permitAll())
 	        .logout((logout) -> logout.permitAll().logoutSuccessUrl("/"));
 		
+        http.addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);
+
 		return http.build();
 	}
 	

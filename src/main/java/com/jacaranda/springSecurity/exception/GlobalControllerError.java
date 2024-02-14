@@ -28,4 +28,11 @@ public class GlobalControllerError {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
 		
 	}
+
+	@ExceptionHandler(ExceptionTokenNotValid.class)
+	public ResponseEntity<ApiError> handleExceptionTokenNotValid(ExceptionTokenNotValid e){
+		ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+		
+	}
 }

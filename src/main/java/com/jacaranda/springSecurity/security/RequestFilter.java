@@ -25,18 +25,21 @@ public class RequestFilter extends OncePerRequestFilter  {
 			FilterChain chain) throws IOException, ServletException  {
 			
 		final String requestTokenHeader = request.getHeader("Authorization");
-	    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
-	    try {
-		    usernamePasswordAuthenticationToken = TokenUtils.getAuthentication(requestTokenHeader);
-			usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-		    // After setting the Authentication in the context, we specify
-		    // that the current user is authenticated. So it passes the
-		    // Spring Security Configurations successfully.
-		    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-		    
-		} catch (Exception e) {
-			logger.error(e.getMessage());
+		if (requestTokenHeader != null) {
+		    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
+		    try {
+			    usernamePasswordAuthenticationToken = TokenUtils.getAuthentication(requestTokenHeader);
+				usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			    // After setting the Authentication in the context, we specify
+			    // that the current user is authenticated. So it passes the
+			    // Spring Security Configurations successfully.
+			    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+			    
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
 		}
+	   
 			   
 		chain.doFilter(request, response);
 
